@@ -4,7 +4,9 @@ app = Flask('__main__')
 
 @app.route('/')
 def home():
-    return "This is first circuit displayed."
+    return render_template('index.html')
+
+
 
 
 
