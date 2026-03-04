@@ -7,10 +7,13 @@ import ReactFlow, {
   useEdgesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { Handle, Position } from "reactflow";
+import { useMemo } from "react";
 
 const initialNodes = [
   {
     id: "battery",
+    type: "battery",
     position: { x: 100, y: 200 },
     data: {
        label: "Battery (9V)" ,
@@ -22,6 +25,7 @@ const initialNodes = [
 
   {
     id: "resistor1",
+    type: "resistor",
     position: { x: 400, y: 200 },
     data: { label: "Resistor (100Ω)",
       voltage: 0,
@@ -33,10 +37,7 @@ const initialNodes = [
 ];
 
 
-const initialEdges = [];
-
-
-
+  const initialEdges = [];
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -58,11 +59,15 @@ const [idCounter, setIdCounter] = useState(2);
   }
 
   // Create Add Component Function
-  const addComponent = (type) => {
+const addComponent = (type) => {
   const newId = `${type}-${idCounter}`;
 
+  console.log(type);
+  console.log(newId);
+  
   let newNode = {
     id: newId,
+    type: type,
     position: {
       x: Math.random() * 500,
       y: Math.random() * 400,
@@ -70,9 +75,12 @@ const [idCounter, setIdCounter] = useState(2);
     data: {},
   };
 
+  console.log(newNode);
+
   if (type === "battery") {
     newNode.data = {
       label: "Battery (9V)",
+      type: 'battery',
       voltage: 9,
       current: 0,
       resistance: 0,
@@ -82,6 +90,7 @@ const [idCounter, setIdCounter] = useState(2);
   if (type === "resistor") {
     newNode.data = {
       label: "Resistor (100Ω)",
+      type: 'resistor',
       voltage: 0,
       current: 0,
       resistance: 100,
@@ -91,6 +100,7 @@ const [idCounter, setIdCounter] = useState(2);
   if (type === "capacitor") {
     newNode.data = {
       label: "Capacitor",
+      type: 'capacitor',
       voltage: 0,
       current: 0,
       resistance: 0,
@@ -100,6 +110,118 @@ const [idCounter, setIdCounter] = useState(2);
   setNodes((nds) => [...nds, newNode]);
   setIdCounter((prev) => prev + 1);
 };
+
+const BatteryNode = ({ data }) => {
+  console.log(data);
+  console.log("This is battery node")
+  return (
+    <div style={{
+      padding: 10,
+      border: "2px solid black",
+      borderRadius: 5,
+      background: "white",
+      textAlign: "center"
+    }}>
+
+      <div style={{ fontWeight: "bold" }}>
+        {data?.label}
+      console.log("THis is battery node")
+      </div>
+    console.log("THis is battery node")
+      
+
+
+      {/* Positive Terminal */}
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="positive"
+      />
+
+      {/* Negative Terminal */}
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="negative"
+      />
+    </div>
+  );
+};
+
+const ResistorNode = ({ data }) => {
+  console.log(data);
+  return (
+    <div style={{
+      padding: 10,
+      border: "2px solid blue",
+      borderRadius: 5,
+      background: "white",
+      textAlign: "center"
+    }}>
+      {data?.label}
+
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+      />
+
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right"
+      />
+    </div>
+  );
+};
+
+
+
+// const nodeTypes =  ({
+//   battery: BatteryNode ,
+//   resistor: ResistorNode,
+// });
+
+
+const UniversalNode = ({ data }) => {
+  return (
+    <div
+      style={{
+        padding: 15,
+        border: "2px solid black",
+        borderRadius: 6,
+        background: "white",
+        textAlign: "center",
+        width: 120,
+      }}
+    >
+      {data.label}
+
+      {/* LEFT */}
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left"
+      />
+
+      {/* RIGHT */}
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+      />
+
+      
+    </div>
+  );
+};
+const createHandles = () => (
+  <>
+    <Handle type="source" position={Position.Left} id="left" />
+    <Handle type="source" position={Position.Right} id="right" />
+    
+  </>
+);
 
   return (
     <div style={{ display: 'flex',width: "100vw", height: "100vh" }}>
@@ -121,6 +243,9 @@ const [idCounter, setIdCounter] = useState(2);
           Capacitor
         </button>
 
+        <button onClick={() => addComponent("resistor")}>
+          Resistortor
+        </button>
       </div>
 
 
@@ -133,6 +258,7 @@ const [idCounter, setIdCounter] = useState(2);
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           onConnect={onConnect}
+          // nodeTypes={nodeTypes}
           fitView
           >
           <Background />
