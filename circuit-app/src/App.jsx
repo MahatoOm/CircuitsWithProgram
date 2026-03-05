@@ -42,6 +42,8 @@ const initialNodes = [
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // const [edges, setEdges] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
 
   //  Add a Counter for Unique IDs
@@ -52,6 +54,8 @@ const [idCounter, setIdCounter] = useState(2);
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
+    // []
+
   );
 
   const onNodeClick = (event, node) => {
@@ -111,6 +115,7 @@ const addComponent = (type) => {
   setIdCounter((prev) => prev + 1);
 };
 
+
 const BatteryNode = ({ data }) => {
   console.log(data);
   console.log("This is battery node")
@@ -123,27 +128,40 @@ const BatteryNode = ({ data }) => {
       textAlign: "center"
     }}>
 
-      <div style={{ fontWeight: "bold" }}>
+      <div style={{ color: "#343532" ,fontWeight: "bold" }}>
         {data?.label}
-      console.log("THis is battery node")
-      </div>
-    console.log("THis is battery node")
       
-
+      </div>
+        {/* console.log("THis is battery node") */}
 
       {/* Positive Terminal */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="positive"
-      />
 
-      {/* Negative Terminal */}
+      <Handle 
+        type = "target"
+        position={Position.Right}
+        id="pos-target"></Handle>
+
       <Handle
         type="source"
         position={Position.Left}
-        id="negative"
+        id="pos-source"
       />
+
+
+      {/* Negative Terminal */}
+      
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="neg-target"
+      />
+      
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="neg-source"
+      />
+
     </div>
   );
 };
@@ -158,18 +176,33 @@ const ResistorNode = ({ data }) => {
       background: "white",
       textAlign: "center"
     }}>
+      <div style = {{ color:" #343532", fontWeight: "bold" }}>
       {data?.label}
+      </div>
 
       <Handle
         type="target"
         position={Position.Left}
-        id="left"
+        id="left-target"
       />
 
       <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+      />
+ 
+      
+      <Handle
         type="target"
         position={Position.Right}
-        id="right"
+        id="right-target"
+      />
+
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
       />
     </div>
   );
@@ -182,46 +215,53 @@ const ResistorNode = ({ data }) => {
 //   resistor: ResistorNode,
 // });
 
+const nodeTypes = useMemo(() => ({
+  battery: BatteryNode,
+  resistor: ResistorNode
+}), []);
 
-const UniversalNode = ({ data }) => {
-  return (
-    <div
-      style={{
-        padding: 15,
-        border: "2px solid black",
-        borderRadius: 6,
-        background: "white",
-        textAlign: "center",
-        width: 120,
-      }}
-    >
-      {data.label}
 
-      {/* LEFT */}
-      <Handle
-        type="source"
-        position={Position.Left}
-        id="left"
-      />
+// const UniversalNode = ({ data }) => {
+//   return (
+//     <div
+//       style={{
+//         padding: 15,
+//         border: "2px solid black",
+//         borderRadius: 6,
+//         background: "white",
+//         textAlign: "center",
+//         width: 120,
+//       }}
+//     >
+//       {data.label}
 
-      {/* RIGHT */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right"
-      />
+//       {/* LEFT */}
+//       <Handle
+//         type="source"
+//         position={Position.Left}
+//         id="left"
+//       />
+
+//       {/* RIGHT */}
+//       <Handle
+//         type="source"
+//         position={Position.Right}
+//         id="right"
+//       />
 
       
-    </div>
-  );
-};
-const createHandles = () => (
-  <>
-    <Handle type="source" position={Position.Left} id="left" />
-    <Handle type="source" position={Position.Right} id="right" />
+//     </div>
+//   );
+// };
+
+
+// const createHandles = () => (
+//   <>
+//     <Handle type="source" position={Position.Left} id="left" />
+//     <Handle type="source" position={Position.Right} id="right" />
     
-  </>
-);
+//   </>
+// );
 
   return (
     <div style={{ display: 'flex',width: "100vw", height: "100vh" }}>
@@ -241,16 +281,12 @@ const createHandles = () => (
 
         <button onClick={() => addComponent("capacitor")}>
           Capacitor
-        </button>
-
-        <button onClick={() => addComponent("resistor")}>
-          Resistortor
-        </button>
+        </button>        
       </div>
 
 
-      <div style = {{ flex: 8}}> 
 
+      <div style = {{ flex: 8}}> 
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -258,11 +294,14 @@ const createHandles = () => (
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           onConnect={onConnect}
-          // nodeTypes={nodeTypes}
+          nodeTypes={nodeTypes}
           fitView
+          // this makes the loose connection for  handles to connect in any nodes
+          connectionMode="loose"
           >
-          <Background />
-          <Controls />
+
+        <Background />
+        <Controls />
         </ReactFlow>
         </div>
 
@@ -275,7 +314,7 @@ const createHandles = () => (
             <p>Resistance: {selectedNode.data.resistance} Ω</p>
           </div>
         )}
-        
+
       </div>
     </div>
   );

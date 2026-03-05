@@ -7,3 +7,12 @@ To run the program
 
 cd circuit-app
 --> npm run dev
+
+
+Updates:
+
+Behavior to connect edges
+
+left right handles
+handles not sticking with each other
+
