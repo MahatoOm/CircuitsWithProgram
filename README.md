@@ -11,8 +11,19 @@ cd circuit-app
 
 Updates:
 
-Behavior to connect edges
 
-left right handles
-handles not sticking with each other
+Next Update
+
+Edge deletion
+Logic building
+Calculations on resisters, Current and Voltage 
+
+
+Completed date 11:00 Pm March 10
+✅Behavior to connect edges
+
+COmpleted date 10:53 Pm March 8
+✅left right handles
+✅handles not sticking with each other
+
 

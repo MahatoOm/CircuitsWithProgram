@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
+
 import ReactFlow, {
   addEdge,
   Background,
@@ -41,21 +42,24 @@ const initialNodes = [
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+  initialEdges,
+
+  // console.log("edge"),
+    // console.log(edges),
+  );
 
   // const [edges, setEdges] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
 
   //  Add a Counter for Unique IDs
-const [idCounter, setIdCounter] = useState(2);
+  const [idCounter, setIdCounter] = useState(2);
   
   
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-    // []
-
+    [setEdges],
   );
 
   const onNodeClick = (event, node) => {
@@ -66,8 +70,8 @@ const [idCounter, setIdCounter] = useState(2);
 const addComponent = (type) => {
   const newId = `${type}-${idCounter}`;
 
-  console.log(type);
-  console.log(newId);
+  // console.log(type);
+  // console.log(newId);
   
   let newNode = {
     id: newId,
@@ -79,7 +83,7 @@ const addComponent = (type) => {
     data: {},
   };
 
-  console.log(newNode);
+  // console.log(newNode);
 
   if (type === "battery") {
     newNode.data = {
@@ -115,10 +119,9 @@ const addComponent = (type) => {
   setIdCounter((prev) => prev + 1);
 };
 
-
 const BatteryNode = ({ data }) => {
-  console.log(data);
-  console.log("This is battery node")
+  // console.log(data);
+  // console.log("This is battery node")
   return (
     <div style={{
       padding: 10,
@@ -132,6 +135,8 @@ const BatteryNode = ({ data }) => {
         {data?.label}
       
       </div>
+
+     
         {/* console.log("THis is battery node") */}
 
       {/* Positive Terminal */}
@@ -167,8 +172,11 @@ const BatteryNode = ({ data }) => {
 };
 
 const ResistorNode = ({ data }) => {
-  console.log(data);
+  // console.log(data);
   return (
+
+    
+    <div>
     <div style={{
       padding: 10,
       border: "2px solid blue",
@@ -179,6 +187,8 @@ const ResistorNode = ({ data }) => {
       <div style = {{ color:" #343532", fontWeight: "bold" }}>
       {data?.label}
       </div>
+      
+      
 
       <Handle
         type="target"
@@ -205,6 +215,13 @@ const ResistorNode = ({ data }) => {
         id="right-source"
       />
     </div>
+    <div style={{ fontSize: "12px" }}>
+        R: {data.resistance}Ω
+        V: {data.voltage}V  
+        I: {data.current}A
+    </div>
+    </div>
+
   );
 };
 
@@ -215,11 +232,11 @@ const ResistorNode = ({ data }) => {
 //   resistor: ResistorNode,
 // });
 
+
 const nodeTypes = useMemo(() => ({
   battery: BatteryNode,
   resistor: ResistorNode
 }), []);
-
 
 // const UniversalNode = ({ data }) => {
 //   return (
@@ -263,6 +280,14 @@ const nodeTypes = useMemo(() => ({
 //   </>
 // );
 
+  // to get all the edges it a react function
+  useEffect(() => {
+    console.log("All Edgex", edges);
+  },[edges]);
+
+
+
+
   return (
     <div style={{ display: 'flex',width: "100vw", height: "100vh" }}>
 
@@ -298,8 +323,7 @@ const nodeTypes = useMemo(() => ({
           fitView
           // this makes the loose connection for  handles to connect in any nodes
           connectionMode="loose"
-          >
-
+          >            
         <Background />
         <Controls />
         </ReactFlow>

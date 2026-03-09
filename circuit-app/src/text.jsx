@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
 import ReactFlow, { 
   addEdge,
   Background,
@@ -43,7 +44,6 @@ export default function App() {
 
       {/* Left Panel: Component Library */}
       <div style={{ flex: 2, borderRight: "1px solid gray", padding: "10px" }}>
-
       
         <h3>Components</h3>
 
@@ -68,8 +68,6 @@ export default function App() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           fitView
-
-          
           style={{ width: "100%", height: "100%" }}
         >
           <Background />
