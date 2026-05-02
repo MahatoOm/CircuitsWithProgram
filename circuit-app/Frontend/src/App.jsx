@@ -17,10 +17,10 @@ const initialNodes = [
     type: "battery",
     position: { x: 100, y: 200 },
     data: {
-       label: "Battery" ,
+       label: " - Battery + " ,
        voltage: 9,
-       current: 0,
-       resistance: 0, 
+       current: " ? ",
+       resistance: " ? ", 
     },
   },
 
@@ -29,9 +29,9 @@ const initialNodes = [
     type: "resistor",
     position: { x: 400, y: 200 },
     data: { label: "Resistor (Ω)",
-      voltage: 0,
-      current : 0,
-      resistance: "Unknown", 
+      voltage: " ? ",
+      current : " ? ",
+      resistance: " ? ", 
 
     },
   },
@@ -87,11 +87,11 @@ const addComponent = (type) => {
 
   if (type === "battery") {
     newNode.data = {
-      label: newId,
+      label: "- " + newId + " +",
       type: 'battery',
-      voltage: "Unknown",
-      current: "Unknown",
-      resistance: "Unknown",
+      voltage: " ? ",
+      current: " ? ",
+      resistance: " ? ",
     };
   }
 
@@ -99,9 +99,9 @@ const addComponent = (type) => {
     newNode.data = {
       label: newId,
       type: 'resistor',
-      voltage: "Unknown",
-      current: "Unknown",
-      resistance: "Unknown",
+      voltage: " ? ",
+      current: " ? ",
+      resistance: " ? ",
     };
   }
 
@@ -112,15 +112,15 @@ const addComponent = (type) => {
       voltage: 0,
       current: 0,
       resistance: 0,
-    }; 
-    
-    if (type === "Bulb") {
+    };
+  }
+  if (type === "bulb") {
     newNode.data = {
       label: newId,
       type: 'capacitor',
-      voltage: "Unknown",
-      current: "Unknown",
-      resistance: "Unknown",
+      voltage: " ? ",
+      current: " ? ",
+      resistance: " ? ",
     };
   }
 
@@ -132,6 +132,7 @@ const BatteryNode = ({ data }) => {
   // console.log(data);
   // console.log("This is battery node")
   return (
+    <div>
     <div style={{
       padding: 10,
       border: "2px solid black",
@@ -175,7 +176,12 @@ const BatteryNode = ({ data }) => {
         position={Position.Left}
         id="neg-source"
       />
-
+</div>
+    <div style={{ fontSize: "12px" }}>
+        R: {data.resistance}Ω
+        V: {data.voltage}V  
+        I: {data.current}A
+    </div>
     </div>
   );
 };
@@ -234,6 +240,58 @@ const ResistorNode = ({ data }) => {
   );
 };
 
+const BulbNode = ({ data }) => {
+  // console.log(data);
+  return (
+    
+    <div>
+    <div style={{
+      padding: 10,
+      border: "2px solid blue",
+      borderRadius: 5,
+      background: "white",
+      textAlign: "center"
+    }}>
+      <div style = {{ color:" #343532", fontWeight: "bold" }}>
+      {data?.label}
+      </div>
+
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+      />
+
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
+      />
+ 
+      
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right-target"
+      />
+
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+      />
+    </div>
+
+    <div style={{ fontSize: "12px" }}>
+        R: {data.resistance}Ω
+        V: {data.voltage}V  
+        I: {data.current}A
+    </div>
+    </div>
+
+  );
+};
+
 
 
 // const nodeTypes =  ({
@@ -244,7 +302,8 @@ const ResistorNode = ({ data }) => {
 
 const nodeTypes = useMemo(() => ({
   battery: BatteryNode,
-  resistor: ResistorNode
+  resistor: ResistorNode,
+  bulb:BulbNode,
 }), []);
 
 // const UniversalNode = ({ data }) => {
@@ -296,11 +355,9 @@ const nodeTypes = useMemo(() => ({
 
 
 
-
-
-
 const [result, setResult] = useState(null);
 const handleCalculate = () => {
+  console.log(edges);
   const result = solveCircuit(nodes, edges);
 
   console.log("Circuit Result:", result);
@@ -379,12 +436,19 @@ const updateSelectedNodeData = (field, value) => {
 
         <button onClick={() => addComponent("resistor")}>
           Resistor
-        </button></h4>
+        </button>
+        <br></br>
+        <br></br>
+        <button onClick={() => addComponent("bulb")}>
+          Bulb
+        </button>
+
 
         {/* <button onClick={() => addComponent("capacitor")}>
           Capacitor
         
         </button>  */}
+        </h4>
       </div>
 
      
@@ -487,6 +551,8 @@ const updateSelectedNodeData = (field, value) => {
  <div style={{padding:"30px", margin: "50px"}}>
          <button onClick={handleCalculate}>
           Calculate
+
+          
         </button>  
 
       </div>
@@ -498,8 +564,200 @@ const updateSelectedNodeData = (field, value) => {
   );
 }
 
-}
 function solveCircuit(nodes, edges) {
+  const typ = detectCircuitType(nodes, edges);
+  console.log(typ)
+  const parent = {};
+
+  // const find = (x) => {
+  //   if (!parent[x]) parent[x] = x;
+  //   if (parent[x] !== x) parent[x] = find(parent[x]);
+  //   return parent[x];
+  // };
+
+  // const union = (a, b) => {
+  //   parent[find(a)] = find(b);
+  // };
+
+  // const terminal = (nodeId, handleId) => `${nodeId}:${handleId}`;
+
+  // // 1. Convert edges into electrical nets
+  // edges.forEach((edge) => {
+  //   union(
+  //     terminal(edge.source, edge.sourceHandle),
+  //     terminal(edge.target, edge.targetHandle)
+  //   );
+  // });
+
+  // const battery = nodes.find((n) => n.type === "battery");
+  // if (!battery) return null;
+
+  // const batteryVoltage = Number(battery.data.voltage || 0);
+
+  // const positiveNet = find(terminal(battery.id, "pos-target"));
+  // const negativeNet = find(terminal(battery.id, "neg-target"));
+
+  // // 2. Convert resistor nodes into resistor branches
+  // let components = nodes
+  //   .filter((n) => n.type === "resistor")
+  //   .map((node) => {
+  //     const leftNet = find(terminal(node.id, "left-source"));
+  //     const rightNet = find(terminal(node.id, "right-source"));
+
+  //     return {
+  //       id: node.id,
+  //       type: "resistor",
+  //       resistance: Number(node.data.resistance || 0),
+  //       a: leftNet,
+  //       b: rightNet,
+  //       originalIds: [node.id],
+  //     };
+  //   })
+  //   .filter((r) => r.resistance > 0 && r.a !== r.b);
+
+  // let steps = [];
+
+  // let changed = true;
+
+  // while (changed) {
+  //   changed = false;
+
+  //   // 3. Detect parallel resistors
+  //   const parallelGroups = {};
+
+  //   components.forEach((r) => {
+  //     const key = [r.a, r.b].sort().join("|");
+
+  //     if (!parallelGroups[key]) {
+  //       parallelGroups[key] = [];
+  //     }
+
+  //     parallelGroups[key].push(r);
+  //   });
+
+  //   for (const key in parallelGroups) {
+  //     const group = parallelGroups[key];
+
+  //     if (group.length > 1) {
+  //       const equivalentResistance =
+  //         1 / group.reduce((sum, r) => sum + 1 / r.resistance, 0);
+
+  //       const newComponent = {
+  //         id: `parallel-${Date.now()}-${Math.random()}`,
+  //         type: "parallel",
+  //         resistance: equivalentResistance,
+  //         a: group[0].a,
+  //         b: group[0].b,
+  //         originalIds: group.flatMap((r) => r.originalIds),
+  //       };
+
+  //       steps.push({
+  //         type: "parallel",
+  //         components: group.map((r) => r.id),
+  //         resistance: equivalentResistance,
+  //       });
+
+  //       components = components.filter((r) => !group.includes(r));
+  //       components.push(newComponent);
+
+  //       changed = true;
+  //       break;
+  //     }
+  //   }
+
+  //   if (changed) continue;
+
+  //   // 4. Detect series resistors
+  //   const netConnections = {};
+
+  //   components.forEach((r) => {
+  //     if (!netConnections[r.a]) netConnections[r.a] = [];
+  //     if (!netConnections[r.b]) netConnections[r.b] = [];
+
+  //     netConnections[r.a].push(r);
+  //     netConnections[r.b].push(r);
+  //   });
+
+  //   for (const net in netConnections) {
+  //     const connected = netConnections[net];
+
+  //     const isMiddleNet =
+  //       connected.length === 2 &&
+  //       net !== positiveNet &&
+  //       net !== negativeNet;
+
+  //     if (isMiddleNet) {
+  //       const [r1, r2] = connected;
+
+  //       const outerA = r1.a === net ? r1.b : r1.a;
+  //       const outerB = r2.a === net ? r2.b : r2.a;
+
+  //       const equivalentResistance = r1.resistance + r2.resistance;
+
+  //       const newComponent = {
+  //         id: `series-${Date.now()}-${Math.random()}`,
+  //         type: "series",
+  //         resistance: equivalentResistance,
+  //         a: outerA,
+  //         b: outerB,
+  //         originalIds: [...r1.originalIds, ...r2.originalIds],
+  //       };
+
+  //       steps.push({
+  //         type: "series",
+  //         components: [r1.id, r2.id],
+  //         resistance: equivalentResistance,
+  //       });
+
+  //       components = components.filter((r) => r !== r1 && r !== r2);
+  //       components.push(newComponent);
+
+  //       changed = true;
+  //       break;
+  //     }
+  //   }
+  // }
+
+  // // 5. Final equivalent resistance
+  // const finalComponent = components.find(
+  //   (r) =>
+  //     (r.a === positiveNet && r.b === negativeNet) ||
+  //     (r.a === negativeNet && r.b === positiveNet)
+  // );
+
+  // if (!finalComponent) {
+  //   return {
+  //     voltage: batteryVoltage,
+  //     equivalentResistance: Infinity,
+  //     totalCurrent: 0,
+  //     resistorResults: [],
+  //     steps,
+  //     message: "Open circuit or unsupported circuit shape",
+  //   };
+  // }
+
+  // const equivalentResistance = finalComponent.resistance;
+  // const totalCurrent = batteryVoltage / equivalentResistance;
+
+  // return {
+  //   voltage: batteryVoltage,
+  //   equivalentResistance,
+  //   totalCurrent,
+  //   resistorResults: nodes
+  //     .filter((n) => n.type === "resistor")
+  //     .map((r) => ({
+  //       id: r.id,
+  //       resistance: Number(r.data.resistance || 0),
+  //       voltageDrop: 0,
+  //       current: 0,
+  //     })),
+  //   steps,
+  //   finalType: finalComponent.type,
+  // };
+}
+
+
+function detectCircuitType(nodes, edges) {
   const parent = {};
 
   const find = (x) => {
@@ -514,7 +772,7 @@ function solveCircuit(nodes, edges) {
 
   const terminal = (nodeId, handleId) => `${nodeId}:${handleId}`;
 
-  // 1. Convert edges into electrical nets
+  // 1. Build electrical nets
   edges.forEach((edge) => {
     union(
       terminal(edge.source, edge.sourceHandle),
@@ -522,174 +780,60 @@ function solveCircuit(nodes, edges) {
     );
   });
 
-  const battery = nodes.find((n) => n.type === "battery");
-  if (!battery) return null;
-
-  const batteryVoltage = Number(battery.data.voltage || 0);
-
-  const positiveNet = find(terminal(battery.id, "pos-target"));
-  const negativeNet = find(terminal(battery.id, "neg-target"));
-
-  // 2. Convert resistor nodes into resistor branches
-  let components = nodes
-    .filter((n) => n.type === "resistor")
-    .map((node) => {
-      const leftNet = find(terminal(node.id, "left-source"));
-      const rightNet = find(terminal(node.id, "right-source"));
+  // 2. Convert components into (netA, netB)
+  const components = nodes
+    .filter((n) => n.type === "resistor" || n.type === "bulb")
+    .map((n) => {
+      const left = find(terminal(n.id, "left-source"));
+      const right = find(terminal(n.id, "right-source"));
 
       return {
-        id: node.id,
-        type: "resistor",
-        resistance: Number(node.data.resistance || 0),
-        a: leftNet,
-        b: rightNet,
-        originalIds: [node.id],
+        id: n.id,
+        a: left,
+        b: right,
       };
     })
-    .filter((r) => r.resistance > 0 && r.a !== r.b);
+    .filter((c) => c.a !== c.b);
 
-  let steps = [];
+  if (components.length === 0) return "unknown";
 
-  let changed = true;
-
-  while (changed) {
-    changed = false;
-
-    // 3. Detect parallel resistors
-    const parallelGroups = {};
-
-    components.forEach((r) => {
-      const key = [r.a, r.b].sort().join("|");
-
-      if (!parallelGroups[key]) {
-        parallelGroups[key] = [];
-      }
-
-      parallelGroups[key].push(r);
-    });
-
-    for (const key in parallelGroups) {
-      const group = parallelGroups[key];
-
-      if (group.length > 1) {
-        const equivalentResistance =
-          1 / group.reduce((sum, r) => sum + 1 / r.resistance, 0);
-
-        const newComponent = {
-          id: `parallel-${Date.now()}-${Math.random()}`,
-          type: "parallel",
-          resistance: equivalentResistance,
-          a: group[0].a,
-          b: group[0].b,
-          originalIds: group.flatMap((r) => r.originalIds),
-        };
-
-        steps.push({
-          type: "parallel",
-          components: group.map((r) => r.id),
-          resistance: equivalentResistance,
-        });
-
-        components = components.filter((r) => !group.includes(r));
-        components.push(newComponent);
-
-        changed = true;
-        break;
-      }
-    }
-
-    if (changed) continue;
-
-    // 4. Detect series resistors
-    const netConnections = {};
-
-    components.forEach((r) => {
-      if (!netConnections[r.a]) netConnections[r.a] = [];
-      if (!netConnections[r.b]) netConnections[r.b] = [];
-
-      netConnections[r.a].push(r);
-      netConnections[r.b].push(r);
-    });
-
-    for (const net in netConnections) {
-      const connected = netConnections[net];
-
-      const isMiddleNet =
-        connected.length === 2 &&
-        net !== positiveNet &&
-        net !== negativeNet;
-
-      if (isMiddleNet) {
-        const [r1, r2] = connected;
-
-        const outerA = r1.a === net ? r1.b : r1.a;
-        const outerB = r2.a === net ? r2.b : r2.a;
-
-        const equivalentResistance = r1.resistance + r2.resistance;
-
-        const newComponent = {
-          id: `series-${Date.now()}-${Math.random()}`,
-          type: "series",
-          resistance: equivalentResistance,
-          a: outerA,
-          b: outerB,
-          originalIds: [...r1.originalIds, ...r2.originalIds],
-        };
-
-        steps.push({
-          type: "series",
-          components: [r1.id, r2.id],
-          resistance: equivalentResistance,
-        });
-
-        components = components.filter((r) => r !== r1 && r !== r2);
-        components.push(newComponent);
-
-        changed = true;
-        break;
-      }
-    }
-  }
-
-  // 5. Final equivalent resistance
-  const finalComponent = components.find(
-    (r) =>
-      (r.a === positiveNet && r.b === negativeNet) ||
-      (r.a === negativeNet && r.b === positiveNet)
+  // 3. Check PARALLEL → all components share same 2 nets
+  const first = components[0];
+  const isParallel = components.every(
+    (c) =>
+      (c.a === first.a && c.b === first.b) ||
+      (c.a === first.b && c.b === first.a)
   );
 
-  if (!finalComponent) {
-    return {
-      voltage: batteryVoltage,
-      equivalentResistance: Infinity,
-      totalCurrent: 0,
-      resistorResults: [],
-      steps,
-      message: "Open circuit or unsupported circuit shape",
-    };
+  if (isParallel) return "parallel";
+
+  // 4. Build net connection count
+  const netCount = {};
+
+  components.forEach((c) => {
+    netCount[c.a] = (netCount[c.a] || 0) + 1;
+    netCount[c.b] = (netCount[c.b] || 0) + 1;
+  });
+
+  // 5. SERIES → chain structure
+  let endNodes = 0;
+  let valid = true;
+
+  for (const net in netCount) {
+    if (netCount[net] === 1) {
+      endNodes++; // start or end
+    } else if (netCount[net] === 2) {
+      continue; // middle node
+    } else {
+      valid = false; // branching → not series
+    }
   }
 
-  const equivalentResistance = finalComponent.resistance;
-  const totalCurrent = batteryVoltage / equivalentResistance;
+  if (valid && endNodes === 2) return "series";
 
-  return {
-    voltage: batteryVoltage,
-    equivalentResistance,
-    totalCurrent,
-    resistorResults: nodes
-      .filter((n) => n.type === "resistor")
-      .map((r) => ({
-        id: r.id,
-        resistance: Number(r.data.resistance || 0),
-        voltageDrop: 0,
-        current: 0,
-      })),
-    steps,
-    finalType: finalComponent.type,
-  };
+  // 6. Otherwise
+  return "mixed";
 }
-
-
 // function solveCircuit(nodes, edges) {
 //   const parent = {};
 
@@ -811,38 +955,37 @@ function solveCircuit(nodes, edges) {
 //   };
 // }
 
-// function gaussianSolve(A, B) {
-//   const n = B.length;
+function gaussianSolve(A, B) {
+  const n = B.length;
 
-//   for (let i = 0; i < n; i++) {
-//     let maxRow = i;
+  for (let i = 0; i < n; i++) {
+    let maxRow = i;
 
-//     for (let k = i + 1; k < n; k++) {
-//       if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) {
-//         maxRow = k;
-//       }
-//     }
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) {
+        maxRow = k;
+      }
+    }
 
-//     [A[i], A[maxRow]] = [A[maxRow], A[i]];
-//     [B[i], B[maxRow]] = [B[maxRow], B[i]];
+    [A[i], A[maxRow]] = [A[maxRow], A[i]];
+    [B[i], B[maxRow]] = [B[maxRow], B[i]];
 
-//     const pivot = A[i][i];
-//     if (Math.abs(pivot) < 1e-12) continue;
+    const pivot = A[i][i];
+    if (Math.abs(pivot) < 1e-12) continue;
 
-//     for (let j = i; j < n; j++) A[i][j] /= pivot;
-//     B[i] /= pivot;
+    for (let j = i; j < n; j++) A[i][j] /= pivot;
+    B[i] /= pivot;
 
-//     for (let k = 0; k < n; k++) {
-//       if (k === i) continue;
+    for (let k = 0; k < n; k++) {
+      if (k === i) continue;
 
-//       const factor = A[k][i];
-//       for (let j = i; j < n; j++) {
-//         A[k][j] -= factor * A[i][j];
-//       }
-//       B[k] -= factor * B[i];
-//     }
-//   }
+      const factor = A[k][i];
+      for (let j = i; j < n; j++) {
+        A[k][j] -= factor * A[i][j];
+      }
+      B[k] -= factor * B[i];
+    }
+  }
 
-//   return B;
-// }
-
+  return B;
+}
